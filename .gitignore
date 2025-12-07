@@ -1,0 +1,20 @@
+# Arquivos compilados do Python (lixo automático)
+__pycache__/
+*.pyc
+
+# Ambientes Virtuais (pesados, não devem ir pro Git)
+.venv/
+venv/
+env/
+
+# Arquivos do VS Code (configurações locais do seu PC)
+.vscode/
+
+# Arquivos gerados pelo PyInstaller (exe)
+build/
+dist/
+*.spec
+
+# Arquivos de sistema operacional (Mac/Windows)
+.DS_Store
+Thumbs.db

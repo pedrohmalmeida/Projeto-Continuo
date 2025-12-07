@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+
 st.set_page_config(layout="wide")
 
 def calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao):
@@ -166,20 +168,43 @@ with c2:
         st.write('**B**: Fator de concentração da biomassa (adm)')
         st.write('**Fr = F*A**: Vazão volumétrica do reciclo (L/h)')        
         st.write('**Xr = X*B**: Concentração de biomassa na corrente de reciclo (g/L)')        
+
+# 1. Pega o diretório onde este arquivo .py está rodando
+diretorio_atual = os.path.dirname(os.path.abspath(__file__))
+
+# Função auxiliar para montar o caminho (evita repetição de código)
+def pegar_caminho_imagem(nome_arquivo):
+    return os.path.join(diretorio_atual, "Imagens", nome_arquivo)        
 with c3:
     st.subheader('Representação do Processo')
-    if modalidade_processo=='Padrão':
-        image='Imagens\Dia_p_continuo.png'
-    elif modalidade_processo=='Reciclo':
-        image='Imagens\Dia_p_cont_reciclo.png' #Substituir por imagem de erro
+    
+    # Variável para guardar o caminho final
+    caminho_final = None 
+
+    if modalidade_processo == 'Padrão':
+        caminho_final = pegar_caminho_imagem('Dia_p_continuo.png')
+        
+    elif modalidade_processo == 'Reciclo':
+        caminho_final = pegar_caminho_imagem('Dia_p_cont_reciclo.png')
         st.warning('Imagem desatualizada')
-    elif modalidade_processo=='Série':
-        image='Imagens\Dia_p_cont_serie.png'
-        st.image(image, width=400)
-        st.stop()
+        
+    elif modalidade_processo == 'Série':
+        caminho_final = pegar_caminho_imagem('Dia_p_cont_serie.png')
+        # Nota: Você tinha um st.image e st.stop aqui dentro no código original. 
+        # Mantive a lógica abaixo para exibir.
+        
     else:
         st.warning('Nenhuma opção selecionada')
-    st.image(image, width=400)
+
+    # Exibição da Imagem (Só tenta mostrar se o caminho foi definido)
+    if caminho_final:
+        # Verificação extra de segurança (opcional, mas recomendada)
+        if os.path.exists(caminho_final):
+            st.image(caminho_final, width=400)
+        else:
+            st.error(f"Erro: Imagem não encontrada no caminho: {caminho_final}")
+            # Se quiser usar a URL do GitHub como backup, o 'try/except' entraria aqui.
+
 
 
 

@@ -137,6 +137,7 @@ def calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Bet
 
 st.sidebar.header("Agradecimentos")
 st.sidebar.write("Inês")
+st.sidebar.write("Ismael")
 
 st.header('Processo Contínuo')
 c1,c2,c3=st.columns(3,border=True)

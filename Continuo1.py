@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+st.header('TESTE')
 st.set_page_config(layout="wide")
 
 def calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao,step):

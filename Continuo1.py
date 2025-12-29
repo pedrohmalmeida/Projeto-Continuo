@@ -6,7 +6,7 @@ import os
 
 st.set_page_config(layout="wide")
 
-def calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao):
+def calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao,step):
     """
     Calcula os valores de diluição, biomassa, substrato e produto
     para diferentes modalidades de associação em um reator contínuo.
@@ -30,7 +30,7 @@ def calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, mo
     Dcritico = u_max * Sin / (Ks + Sin)
 
     # Intervalo de diluição
-    Dil = np.arange(Dil_min, Dil_max, 0.01)
+    Dil = np.arange(Dil_min, Dil_max, step)
 
     # Listas de resultados
     Diluicao, Biomassa, Substrato, Produto = [], [], [], []
@@ -39,38 +39,35 @@ def calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, mo
     for d in Dil:
         s = (Ks * d) / (u_max - d)
         b = Yx_s * (Sin - s)
-
         if modalidade_associacao == 'Associado':
             p = Alfa * (Sin - s)
+            eq_p=fr"""P = Alfa * (Sin - D)"""
         elif modalidade_associacao == 'Semi Associado':
             p = b * (Alfa + Beta / d)
+            eq_p=fr"""P = Alfa * (Sin - D)"""
         else:  # Não Associado
             p = b * (Beta / d)
-
+            eq_p=fr"""P = X * (Beta / D)"""
+        eq_s=fr"""S = \frac{Ks * d}{u_max-d}"""
+        eq_b=fr"""X = Yx_s*(Sin - s)"""
         # Aqui você pode calcular Produto_sa e Produto_na se quiser diferenciá-los
-        p_sa = 0.0
-        p_na = 0.0
 
         # Armazenar resultados
         Diluicao.append(d)
         Biomassa.append(b)
         Substrato.append(s)
         Produto.append(p)
-        Produto_sa.append(p_sa)
-        Produto_na.append(p_na)
 
     dados = {
         'Diluição (1/h)': Diluicao,
         'Biomassa (g/L)': Biomassa,
         'Substrato (g/L)': Substrato,
         'Produto (g/L)': Produto,
-        'Produto semi associado (g/L)': Produto_sa,
-        'Produto não associado (g/L)': Produto_na,
     }
 
     return dados, Dcritico
 
-def calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao):
+def calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao,step):
     """
     Calcula os valores de diluição, biomassa, substrato e produto
     para diferentes modalidades de associação em um reator contínuo.
@@ -96,7 +93,7 @@ def calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Bet
     Dcritico = u_max /E
 
     # Intervalo de diluição
-    Dil = np.arange(Dil_min, Dil_max, 0.01)
+    Dil = np.arange(Dil_min, Dil_max, step)
 
     # Listas de resultados
     Diluicao, Biomassa, Substrato, Produto = [], [], [], []
@@ -138,7 +135,9 @@ def calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Bet
 st.sidebar.header("Agradecimentos")
 st.sidebar.write("Inês")
 st.sidebar.write("Ismael")
-st.sidebar.header("Controle do Gráfico")
+st.sidebar.write("Livro de Biotecnologia Industrial")
+st.sidebar.divider()
+st.sidebar.header("Controles")
 
 st.header('Processo Contínuo')
 c1,c2,c3=st.columns(3,border=True)
@@ -158,6 +157,7 @@ with c1:
     - Reator em série (Não Implementado)
     """)
     modalidade_processo=st.selectbox('**Modalidade de processo:**',['Padrão','Reciclo','Série'])
+    if modalidade_processo=='Série':st.warning('Em construção')
 with c2:
     st.subheader('Legenda')
     st.write('**VC**: Volume de controle do sistema')
@@ -209,7 +209,7 @@ with c3:
         else:
             st.error(f"Erro: Imagem não encontrada no caminho: {caminho_final}")
             # Se quiser usar a URL do GitHub como backup, o 'try/except' entraria aqui.
-
+    st.warning('Adicionar uma segunda imagem com zoom no ''filtro'' de reciclo')
 
 
 
@@ -238,7 +238,8 @@ if modalidade_processo=='Padrão':
 elif modalidade_processo=='Reciclo':
     Dcritico=u_max/(1+A-A*B)
 elif modalidade_processo=='Série':
-    ...
+    st.warning('**Em construção**')
+    st.stop()
 else:
     ...
 st.divider()
@@ -247,51 +248,119 @@ st.divider()
 st.header(f'Cálculos e Gráficos - {modalidade_processo}')
 c1,c2=st.columns([1,2])
 with c1:
-    st.subheader('Taxa de diluição')
-    Dil_min,Dil_max=st.slider('**Taxa de Diluição (1/h):**',min_value=0.00,max_value=Dcritico+0.05,value=(0.0,0.50*Dcritico))
+    st.sidebar.subheader('Taxa de diluição')
+    step = st.sidebar.number_input("**Variação de D:**",step=0.001,format="%0.3f",value=0.01,)
+    Dil_min,Dil_max=st.sidebar.slider('**Taxa de Diluição (1/h):**',min_value=0.00,max_value=Dcritico+0.05,value=(0.0,Dcritico-0.1),width=250,step=step)
     if modalidade_processo == 'Padrão':
-        dados, Dcritico=calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao)
+        dados, Dcritico=calcular_dados_padrao(Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao,step)
     elif modalidade_processo == 'Reciclo':
-        dados, Dcritico=calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao)
-        st.warning('Em construção')
+        dados, Dcritico=calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Beta, modalidade_associacao,step)
     elif modalidade_processo == 'Série':
         st.warning('Em construção')
+        st.stop()
     else:
         st.error('Nenhuma modalidade de processo escolhida')
-    mostrar_Dcritico=st.checkbox('Mostrar Dcritico no gráfico',False)
+    if Dil_max>Dcritico*0.95:
+        mostrar_Dcritico=st.checkbox('Mostrar Dcritico no gráfico',False)
+    else:
+        mostrar_Dcritico=False
     
 
-    st.subheader(f'Visualização das Fórmulas')
-    st.warning('Em desenvolvimento')
-    if st.checkbox('Taxa de Diluição Crítica'):
-        if modalidade_processo=='Padrão':
-            Dcritico = u_max * Sin / (Ks + Sin)
-            eq=r""""""
-            eq_cal=""""""
+    st.subheader(f'Fórmulas')
+    if modalidade_processo == 'Padrão':
+        S = (Ks * Dil_max) / (u_max - Dil_max)
+        X = Yx_s * (Sin - S)
+        X=round(X,3)
+        Dil_max=round(Dil_max,2)    
+        st.sidebar.write('**Visualização das Fórmulas**')    
+        if st.sidebar.checkbox(f'Valores para D = {Dil_max} (1/h)', key='mostrar_formula'):
+            if modalidade_associacao == 'Associado':
+                p = Alfa * (Sin - S)
+                eq_p=fr"""P = {Alfa} * ({Sin} - {Dil_max}) = {p:.2f}(g/L)"""
+            elif modalidade_associacao == 'Semi Associado':
+                p = X * (Alfa + Beta / Dil_max)
+                eq_p=fr"""P = {X}*\frac{{({Alfa}+{Beta})}}{{{Dil_max}}} = {p:.2f}(g/L)"""
+            else:  # Não Associado
+                p = X * (Beta / Dil_max)
+                eq_p=fr"""P = {X} * (\frac{{{Beta}}}{{{Dil_max}}}) = {p:.2f}(g/L)"""
+            eq_s=fr"""S = \frac{{{Ks} * {Dil_max}}}{{{u_max}-{Dil_max}}} = {S:.2f} (g/L)"""
+            eq_b=fr"""X = {Yx_s}*({Sin} - {S:.2f}) = {X:.2f}(g/L)"""
+            eq_d=fr"""Dcritico = \frac{{{u_max}*{{{Sin}}}}}{{({Ks} + {Sin})}} = {Dcritico:.2f} (1/h)"""
+
+        else:            
+            if modalidade_associacao == 'Associado':
+                p = Alfa * (Sin - S)
+                eq_p=fr"""P = Alfa * (S_{{in}} - D)"""
+            elif modalidade_associacao == 'Semi Associado':
+                p = X * (Alfa + Beta / Dil_max)
+                eq_p=fr"""P = X*\frac{{(Alfa+Beta)}}{{D}}"""
+            else:  # Não Associado
+                p = X * (Beta / Dil_max)
+                eq_p=fr"""P = X * (Beta / D)"""
+            eq_s=fr"""S = \frac{{Ks * D}}{{u_{{max}}-D}}"""
+            eq_b=fr"""X = Y_{{x/s}}*(Sin - S)"""
+            eq_d=fr"""Dcritico = \frac{{u_{{max}} * Sin}}{{(Ks + Sin)}}"""
+
+        st.write('**Equação do Dcrítico:**')
+        st.latex(eq_d)
+        st.write('**Equação da substrato:**')
+        st.latex(eq_s)
+        st.write('**Equação da biomassa:**')
+        st.latex(eq_b)
+        st.write('**Equação da produto:**')
+        st.latex(eq_p)
+
+    elif modalidade_processo == 'Reciclo':
+        E=(1+A-A*B)
+        S = (Ks * Dil_max*E) / (u_max - Dil_max*E)
+        X = Yx_s * (Sin - S)/E
+        S=round(S,3)        
+        X=round(X,3)    
+        Dil_max=round(Dil_max,2)
+        if st.checkbox(f'Valores para D = {Dil_max} (1/h)',key='mostrar_formula'):
+            eq_s=fr"""S = \frac{{{Ks} * {Dil_max}}}{{{u_max}-{Dil_max}}} = {S:.2f} (g/L)"""
+            eq_b=fr"""X = {Yx_s}*({Sin} - {S:.2f}) = {X:.2f}(g/L)"""     
+            eq_p=fr"""Em desenvolvimetento"""
+            eq_d=fr"""Dcritico = \frac{{{u_max}}}{{{E}}} = {Dcritico:.2f} (1/h)"""
+            eq_r=fr"""E = (1+{A}-{A}*{B}) ={E}"""
+            if modalidade_associacao == 'Associado':
+                P = Alfa * (Sin - S)
+                eq_p=fr"""P = {Alfa} * ({Sin} - {S}) = {P:.2f} (g/L)"""
+            elif modalidade_associacao == 'Semi Associado':
+                P = X * (Alfa + Beta / Dil_max)
+                eq_p=fr"""P = {X} * \frac{{{Alfa}+{Beta}}}{{{Dil_max}}} = {P:.2f} (g/L)"""
+            else:  # Não Associado
+                P = X * (Beta / Dil_max)
+                eq_p=fr"""P = b * (\frac{{{Beta}}}{{{Dil_max}}}) = {P:.2f} (g/L)"""        
+        
         else:
-            #E=(1+A-A*B)
-            #Dcritico = u_max /E
-            eq=r""""""
-            eq_cal=""""""
-        st.latex(eq)
-        st.latex(eq_cal)
-    if st.checkbox('Biomassa no Bioreator'):
-        ...
-    if st.checkbox('Substrato no Bioreator'):
-        s=Ks * Dil_max/u_max - Dil_max
-        st.latex(r"""
-        S = \frac{K_s * D}{u_{max} - D}
-        """)
-        st.latex(fr"""
-        s = \frac{{{Ks}*{Dil_max:.2f}}}{{{u_max}-{Dil_max:.2f}}}={Sin:.2f}
-        """)
-        #st.write(f'Para Taxa de diluição escolhida: D = {Dil_max:.3f}')
-        #eq=rf"""{s:.3f} = {Ks} * {Dil_max:.3f}/{u_max} - {Dil_max:.3f}"""
-        #eq=rf"""{s:.3f} = {Ks} * {Dil_max:.3f}/{u_max} - {Dil_max:.3f}"""
-        #eq=f"""{Ks}*{Dil_max:.3f}/({u_max}-{Dil_max:.3f})={s:.3f}"""
-        #st.latex(eq)
-    if st.checkbox('Produto no Bioreator'):
-        ...
+            eq_s=fr"""S = \frac{{Ks * D * E)}}{{u_{{max}} - D*E}}"""
+            eq_b=fr"""X = Yx_s * \frac{{(Sin - S)}}{{E}}"""
+            eq_d=fr"""Dcritico = \frac{{u_{{max}}}}{{E}}"""
+            eq_r=fr"""E = (1+A-A*B)"""
+            if modalidade_associacao == 'Associado':
+                p = Alfa * (Sin - S)
+                eq_p=fr"""P = Alfa * (Sin - S)"""
+            elif modalidade_associacao == 'Semi Associado':
+                p = X * (Alfa + Beta / Dil_max)
+                eq_p=fr"""P = X * (\frac {{Alfa + Beta}} {{D}})"""
+            else:  # Não Associado
+                p = X * (Beta / Dil_max)
+                eq_p=fr"""P = X * \frac{{Beta}}{{D}}"""
+
+        st.write('**Equação de reciclo:**')
+        st.latex(eq_r)
+        st.write('**Equação do Dcrítico:**')
+        st.latex(eq_d)
+        st.write('**Equação da substrato:**')
+        st.latex(eq_s)
+        st.write('**Equação da biomassa:**')
+        st.latex(eq_b)
+        st.write('**Equação da produto:**')
+        st.latex(eq_p)
+
+
+
 with c2:
     fig1, ax1 = plt.subplots()
     ax2 = ax1.twinx()
@@ -350,6 +419,8 @@ with c2:
     st.pyplot(fig1)
 
 st.divider()
+st.header(f'Dados Brutos - Reator {modalidade_processo} com Produto {modalidade_associacao}')
+st.dataframe(dados)
 st.markdown("""
 ### Próximas atualizações 
 - Reator em série 

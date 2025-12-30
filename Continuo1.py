@@ -132,11 +132,6 @@ def calcular_dados_reciclo(A,B,Dil_min, Dil_max, u_max, Ks, Sin, Yx_s, Alfa, Bet
 
     return dados, Dcritico
 
-st.sidebar.header("Agradecimentos")
-st.sidebar.write("Inês")
-st.sidebar.write("Ismael")
-st.sidebar.write("Livro de Biotecnologia Industrial")
-st.sidebar.divider()
 st.sidebar.header("Controles")
 
 st.header('Processo Contínuo')
@@ -211,8 +206,11 @@ with c3:
             # Se quiser usar a URL do GitHub como backup, o 'try/except' entraria aqui.
     st.warning('Adicionar uma segunda imagem com zoom no ''filtro'' de reciclo')
 
+st.divider()
+st.subheader('Teoria e Fórmulas')
+st.warning('Em Desenvolvimento')
 
-
+st.divider()
 st.subheader('Parâmetros do Processo')
 c1, c2, c3, c4 = st.columns(4,border=True)
 with c1:
@@ -266,7 +264,7 @@ with c1:
         mostrar_Dcritico=False
     
 
-    st.subheader(f'Fórmulas')
+    st.subheader(f'Fórmulas Aplicadas')
     if modalidade_processo == 'Padrão':
         S = (Ks * Dil_max) / (u_max - Dil_max)
         X = Yx_s * (Sin - S)
@@ -430,3 +428,40 @@ st.markdown("""
 - Gráfico (D x D(Sin-S)/X)
 - Produtividade Volumétrica
 """)
+
+with st.sidebar:
+    st.markdown("---")
+    
+    # Expander fechado por padrão para manter a limpeza visual
+    with st.expander("🎓 Créditos Acadêmicos", expanded=False):
+        
+        # --- PROFA INÊS ---
+        st.markdown("### 👩‍🔬 Fundamentação Teórica")
+        st.markdown("**Profa. Dra. Inês Conceição Roberto**")
+        st.write("Responsável pelo material didático que fundamenta os algoritmos. Pesquisadora de destaque mundial (ranking Stanford) em bioprocessos e biomassas.")
+        # Link externo
+        st.markdown("🔗 [LinkedIn / Lattes](https://www.linkedin.com/)")
+        
+        st.markdown("---")
+        
+        # --- PROF ISMAEL ---
+        st.markdown("### 👨‍🏫 Inspiração Pedagógica")
+        st.markdown("**Prof. Dr. Ismael Maciel de Mancilha**")
+        st.write("O app serve de apoio às suas aulas de introdução à bioreatores e bioprocessos. É referência acadêmica em tecnologia das fermentações e microbiologia industrial.")
+        # Link externo
+        st.markdown("🔗 [LinkedIn / Lattes](https://www.linkedin.com/)")
+        
+        st.markdown("---")
+
+        # --- PROF JÚLIO ---
+        st.markdown("### 🚀 Incentivo Técnico")
+        st.markdown("**Prof. Dr. Júlio César dos Santos**")
+        st.write("Incentivador fundamental no desenvolvimento de softwares bioquímicos. Possui trabalhos de referência na área de biorreatores e simulação de bioprocessos.")
+        # Link externo
+        st.markdown("🔗 [LinkedIn / Lattes](https://www.linkedin.com/)")
+
+        st.markdown("---")
+
+        # --- BIBLIOGRAFIA ---
+        st.markdown("### 📚 Bibliografia Base")
+        st.info('**Biotecnologia Industrial (Vol. 2)** - Schmidell, Lima, Aquarone, Borzani. Edgard Blücher.')
